@@ -419,7 +419,6 @@ end
     @test_throws ArgumentError by(d -> d.x == [1] ? 1 : DataFrame(x1=1), df, :x)
     @test_throws ArgumentError by(d -> d.x == [1] ? DataFrame(x1=1) : 1, df, :x)
     @test_throws ArgumentError by(d -> d.x == [1] ? DataFrame() : DataFrame(x1=1), df, :x)
-    @test_throws ArgumentError by(d -> d.x == [1] ? DataFrame(x1=1) : DataFrame(), df, :x)
     @test_throws ArgumentError by(d -> d.x == [1] ? (x1=1) : (x1=[1]), df, :x)
     @test_throws ArgumentError by(d -> d.x == [1] ? (x1=[1]) : (x1=1), df, :x)
     @test_throws ArgumentError by(d -> d.x == [1] ? 1 : [1], df, :x)
@@ -465,6 +464,15 @@ end
     @test isempty(gd2.ends)
     @test parent(gd2) == DataFrame(A=[], X=[])
     @test eltype.(eachcol(parent(gd2))) == [Int, Int]
+
+    # https://github.com/JuliaData/DataFrames.jl/issues/1981
+    # Test returning no rows in the first group but some in later groups
+    @test by(df, :A, d -> d[1, :A] == 1 ? DataFrame() : DataFrame(B = ['a'])) == DataFrame(A=[2,3], B=['a', 'a'])
+    # Test returning no rows in in a later group
+    df = DataFrame(A = [1, 2, 3])
+    @test by(df, :A, d -> d[1, :A] == 2 ? DataFrame() : DataFrame(B = ['a'])) == DataFrame(A=[1,3], B=['a', 'a'])
+    # Test for never returning rows is already handled above
+
 end
 
 @testset "grouping with missings" begin

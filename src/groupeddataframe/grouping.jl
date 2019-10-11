@@ -888,6 +888,8 @@ function append_rows!(rows, outcols::NTuple{N, AbstractVector},
     if !isa(rows, Union{AbstractDataFrame, NamedTuple{<:Any, <:Tuple{Vararg{AbstractVector}}}})
         throw(ArgumentError("return value must not change its kind " *
                             "(single row or variable number of rows) across groups"))
+    elseif _ncol(rows) == 0
+        return nothing
     elseif _ncol(rows) != N
         throw(ArgumentError("return value must have the same number of columns " *
                             "for all groups (got $N and $(_ncol(rows)))"))
